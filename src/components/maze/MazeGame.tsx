@@ -1,22 +1,22 @@
 import * as stylex from "@stylexjs/stylex"
 import { useEffect, useState } from "react"
+import { Button } from "../Button"
 
 export type GridCellType = {
   x: number
   y: number
 }
 
-type MazeGridProps = {
+type MazeGameProps = {
   game: {
     gridSize: number
     randomStart: GridCellType
     randomDestination: GridCellType
   }
   restartGame: () => void
-  toggleTimer: () => void
 }
 
-export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
+export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
   const randomDestination = game.randomDestination
   const gridSize = game.gridSize
   const randomStart = game.randomStart
@@ -41,9 +41,8 @@ export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
   const [gameStatus, setGameStatus] = useState("")
 
   const handleKeyDown = (event: KeyboardEvent) => {
+    //check first key down
     if (gameStatus === "") {
-      console.log("Starting the game")
-      toggleTimer()
       setGameStatus("on")
     }
 
@@ -52,7 +51,6 @@ export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
         const newY = prevVal.y - 1
         if (newY < 0) {
           setGameStatus("over")
-          toggleTimer()
 
           setStopKeyDown(true)
           return prevVal
@@ -67,7 +65,6 @@ export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
         const newY = prevVal.y + 1
         if (newY > gridSize - 1) {
           setGameStatus("over")
-          toggleTimer()
 
           setStopKeyDown(true)
 
@@ -83,7 +80,6 @@ export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
         const newX = prevVal.x - 1
         if (newX < 0) {
           setGameStatus("over")
-          toggleTimer()
 
           setStopKeyDown(true)
 
@@ -99,7 +95,6 @@ export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
         const newX = prevVal.x + 1
         if (newX > gridSize - 1) {
           setGameStatus("over")
-          toggleTimer()
 
           setStopKeyDown(true)
           return prevVal
@@ -120,32 +115,30 @@ export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
       movingCell.y === randomDestination.y
     ) {
       setGameStatus("win")
-      toggleTimer()
+
       setStopKeyDown(true)
     }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
     }
-  }, [stopKeyDown, movingCell, toggleTimer])
+  }, [stopKeyDown, movingCell])
 
   useEffect(() => {
     setMovingCell(randomStart)
   }, [randomStart])
 
+  const gameRestartButtonFN = () => {
+    restartGame()
+    setGameStatus("")
+    setStopKeyDown(false)
+  }
+
   return (
     <div {...stylex.props(styles.base)}>
       <div>
         <div>Game Status: {gameStatus}</div>
-        <div
-          onClick={() => {
-            restartGame()
-            setGameStatus("")
-            setStopKeyDown(false)
-          }}
-        >
-          Game Restart Button
-        </div>
+        <Button text="Game Restart" onClickFn={gameRestartButtonFN} />
       </div>
 
       <div {...stylex.props(styles.grid)}>

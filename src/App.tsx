@@ -1,6 +1,6 @@
 import * as stylex from "@stylexjs/stylex"
-import { MazeGrid } from "./maze/MazeGrid"
 import { useEffect, useState } from "react"
+import { MazeGame } from "./components/maze/MazeGame"
 
 export const App = () => {
   const gridSize = 10
@@ -37,22 +37,25 @@ export const App = () => {
       randomDestination: randomDestination,
     })
     setTimerSec(0)
-    setIsRunning(false)
+    setIsTimerRunning(false)
   }
 
-  const [isRunning, setIsRunning] = useState(false)
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [timerSec, setTimerSec] = useState(0)
 
-  useEffect(() => {
-    let timer: number
+  let timer: number
 
-    if (isRunning) {
+  useEffect(() => {
+    if (isTimerRunning) {
       timer = setInterval(() => {
         setTimerSec((prevTime) => prevTime + 1)
-      }, 10) //1000
+      }, 10)
+    } else {
+      clearInterval(timer)
     }
-    return () => clearInterval(timer) //clean up the timer interval
-  }, [isRunning])
+
+    return () => clearInterval(timer) // Clean up the interval on unmount or when isTimerRunning changes
+  }, [isTimerRunning])
 
   const formatTime = (timeInCentiseconds: number) => {
     const centiseconds = timeInCentiseconds % 100
@@ -66,17 +69,26 @@ export const App = () => {
       .padStart(2, "0")}`
   }
 
+  const formattedTime = formatTime(timerSec)
   return (
     <div {...stylex.props(styles.base)}>
       <div> A block in the dark</div>
-      <div>{formatTime(timerSec)}</div>
-      <MazeGrid
-        game={game}
-        restartGame={restartGame}
-        toggleTimer={() => {
-          setIsRunning(!isRunning)
+      <div>{formattedTime}</div>
+      <div
+        onClick={() => {
+          setIsTimerRunning(true)
         }}
-      />
+      >
+        Timer start{" "}
+      </div>
+      <div
+        onClick={() => {
+          setIsTimerRunning(false)
+        }}
+      >
+        Timer End
+      </div>
+      <MazeGame game={game} restartGame={restartGame} />
     </div>
   )
 }
