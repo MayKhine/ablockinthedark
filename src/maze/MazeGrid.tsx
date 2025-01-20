@@ -1,23 +1,27 @@
 import * as stylex from "@stylexjs/stylex"
 import { useEffect, useState } from "react"
 
-type GridCellType = {
+export type GridCellType = {
   x: number
   y: number
 }
-const gridSize = 5
 
-const randomStart = {
-  x: Math.floor(Math.random() * gridSize),
-  y: Math.floor(Math.random() * 2) + Math.ceil(gridSize / 2),
+type MazeGridProps = {
+  game: {
+    gridSize: number
+    randomStart: GridCellType
+    randomDestination: GridCellType
+  }
+  restartGame: () => void
 }
 
-const randomDestination = {
-  x: Math.floor(Math.random() * gridSize),
-  y: Math.floor(Math.random() * 2),
-}
+export const MazeGrid = ({ game, restartGame }: MazeGridProps) => {
+  const randomDestination = game.randomDestination
+  const gridSize = game.gridSize
+  const randomStart = game.randomStart
+  const [movingCell, setMovingCell] = useState(randomStart)
+  const [stopKeyDown, setStopKeyDown] = useState(false)
 
-export const MazeGrid = () => {
   const generateGridArrOfArr = (gridSize: number) => {
     const tempArr = new Array<Array<GridCellType>>()
 
@@ -32,19 +36,16 @@ export const MazeGrid = () => {
   }
 
   const gridArrOfArr = generateGridArrOfArr(gridSize)
-  console.log("Generated arr of arr: ", gridArrOfArr)
 
-  const [movingCell, setMovingCell] = useState(randomStart)
-  const [gameOver, setGameOver] = useState(false)
-  console.log("Moving Cell: ", movingCell)
+  const [gameStatus, setGameStatus] = useState("")
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    console.log("event key down : ", event.key, event.code)
     if (event.key === "ArrowUp") {
       setMovingCell((prevVal) => {
         const newY = prevVal.y - 1
         if (newY < 0) {
-          setGameOver(true)
+          setGameStatus("over")
+          setStopKeyDown(true)
           return prevVal
         } else {
           return { ...prevVal, y: newY }
@@ -56,7 +57,9 @@ export const MazeGrid = () => {
       setMovingCell((prevVal) => {
         const newY = prevVal.y + 1
         if (newY > gridSize - 1) {
-          setGameOver(true)
+          setGameStatus("over")
+          setStopKeyDown(true)
+
           return prevVal
         } else {
           return { ...prevVal, y: newY }
@@ -68,7 +71,9 @@ export const MazeGrid = () => {
       setMovingCell((prevVal) => {
         const newX = prevVal.x - 1
         if (newX < 0) {
-          setGameOver(true)
+          setGameStatus("over")
+          setStopKeyDown(true)
+
           return prevVal
         } else {
           return { ...prevVal, x: newX }
@@ -80,7 +85,8 @@ export const MazeGrid = () => {
       setMovingCell((prevVal) => {
         const newX = prevVal.x + 1
         if (newX > gridSize - 1) {
-          setGameOver(true)
+          setGameStatus("over")
+          setStopKeyDown(true)
           return prevVal
         } else {
           return { ...prevVal, x: newX }
@@ -90,83 +96,125 @@ export const MazeGrid = () => {
   }
 
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown)
+    if (!stopKeyDown) {
+      document.addEventListener("keydown", handleKeyDown)
+    }
+
+    if (
+      movingCell.x === randomDestination.x &&
+      movingCell.y === randomDestination.y
+    ) {
+      setGameStatus("win")
+      setStopKeyDown(true)
+    }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
     }
-  }, [])
+  }, [stopKeyDown, movingCell])
+
+  useEffect(() => {
+    setMovingCell(randomStart)
+  }, [randomStart])
 
   return (
     <div {...stylex.props(styles.base)}>
-      {gridArrOfArr.map((eachArr, index) => {
-        return (
-          <div key={index} {...stylex.props(styles.row)}>
-            {eachArr.map((eachCell, index) => {
-              return (
-                <div key={index} {...stylex.props(styles.cell)}>
-                  {/* Random Start */}
-                  {movingCell.x === eachCell.x &&
-                    movingCell.y === eachCell.y && (
-                      <div {...stylex.props(styles.movingCell)}>
-                        {eachCell.x} , {eachCell.y} *
-                      </div>
-                    )}
+      <div>
+        <div>Game Status: {gameStatus}</div>
+        <div
+          onClick={() => {
+            restartGame()
+            setGameStatus("")
+            setStopKeyDown(false)
+          }}
+        >
+          Game Restart Button
+        </div>
+      </div>
 
-                  {/* Random Destination */}
-                  {randomDestination.x === eachCell.x &&
-                    randomDestination.y === eachCell.y && (
-                      <div {...stylex.props(styles.destinationCell)}>
-                        {eachCell.x} , {eachCell.y} *
-                      </div>
-                    )}
+      <div {...stylex.props(styles.grid)}>
+        {gridArrOfArr.map((eachArr, index) => {
+          return (
+            <div key={index} {...stylex.props(styles.row)}>
+              {eachArr.map((eachCell, index) => {
+                return (
+                  <div key={index} {...stylex.props(styles.cell)}>
+                    {movingCell.x === eachCell.x &&
+                      movingCell.y === eachCell.y && (
+                        <div
+                          {...stylex.props(
+                            styles.movingCell(
+                              movingCell.x,
+                              randomDestination.x,
+                              movingCell.y,
+                              randomDestination.y
+                            )
+                          )}
+                        >
+                          {/* {eachCell.x} , {eachCell.y} * */}
+                        </div>
+                      )}
 
-                  {(movingCell.x !== eachCell.x ||
-                    movingCell.y !== eachCell.y) &&
-                    (randomDestination.x !== eachCell.x ||
-                      randomDestination.y !== eachCell.y) &&
-                    (movingCell.x !== randomDestination.x ||
-                      movingCell.y !== randomDestination.y) && (
-                      <div>
-                        {eachCell.x},{eachCell.y}
+                    {(movingCell.x !== eachCell.x ||
+                      movingCell.y !== eachCell.y) && (
+                      <div
+                        {...stylex.props(
+                          styles.destinationCell(
+                            eachCell.x,
+                            randomDestination.x,
+                            eachCell.y,
+                            randomDestination.y
+                          )
+                        )}
+                      >
+                        {/* {eachCell.x},{eachCell.y} */}
                       </div>
                     )}
-                </div>
-              )
-            })}
-          </div>
-        )
-      })}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
 const styles = stylex.create({
   base: {
-    backgroundColor: "lightblue",
+    // backgroundColor: "lightblue",
     display: "flex",
     flexDirection: "column",
   },
+  grid: {
+    backgroundColor: "gray",
+    display: "flex",
+    flexDirection: "column",
+    width: "max-content",
+    // height: "100%",
+  },
+
   row: {
-    backgroundColor: "pink",
+    // backgroundColor: "black",
     display: "flex",
     flexDirection: "row",
-    gap: "1rem",
+    gap: ".5rem",
   },
   cell: {
-    backgroundColor: "lightyellow",
-    width: "3rem",
+    // width: "100%",
+    width: "2rem",
     aspectRatio: "1",
-    marginTop: "1rem",
+    marginTop: ".5rem",
   },
-  movingCell: {
-    backgroundColor: "red",
+  movingCell: (x1: number, x2: number, y1: number, y2: number) => ({
+    backgroundColor: x1 === x2 && y1 === y2 ? "yellow" : "red", //yellow : win
     width: "100%",
     height: "100%",
-  },
-  destinationCell: {
-    backgroundColor: "green",
+  }),
+  destinationCell: (x1: number, x2: number, y1: number, y2: number) => ({
+    backgroundColor: x1 === x2 && y1 === y2 ? "green" : "darkgray",
     width: "100%",
     height: "100%",
-  },
+  }),
 })
