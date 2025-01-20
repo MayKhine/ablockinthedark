@@ -14,9 +14,16 @@ type MazeGameProps = {
     randomDestination: GridCellType
   }
   restartGame: () => void
+  startTimer: () => void
+  endTimer: () => void
 }
 
-export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
+export const MazeGame = ({
+  game,
+  restartGame,
+  startTimer,
+  endTimer,
+}: MazeGameProps) => {
   const randomDestination = game.randomDestination
   const gridSize = game.gridSize
   const randomStart = game.randomStart
@@ -44,6 +51,7 @@ export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
     //check first key down
     if (gameStatus === "") {
       setGameStatus("on")
+      startTimer()
     }
 
     if (event.key === "ArrowUp") {
@@ -51,6 +59,7 @@ export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
         const newY = prevVal.y - 1
         if (newY < 0) {
           setGameStatus("over")
+          endTimer()
 
           setStopKeyDown(true)
           return prevVal
@@ -65,7 +74,7 @@ export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
         const newY = prevVal.y + 1
         if (newY > gridSize - 1) {
           setGameStatus("over")
-
+          endTimer()
           setStopKeyDown(true)
 
           return prevVal
@@ -80,6 +89,7 @@ export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
         const newX = prevVal.x - 1
         if (newX < 0) {
           setGameStatus("over")
+          endTimer()
 
           setStopKeyDown(true)
 
@@ -95,6 +105,7 @@ export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
         const newX = prevVal.x + 1
         if (newX > gridSize - 1) {
           setGameStatus("over")
+          endTimer()
 
           setStopKeyDown(true)
           return prevVal
@@ -115,6 +126,7 @@ export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
       movingCell.y === randomDestination.y
     ) {
       setGameStatus("win")
+      endTimer()
 
       setStopKeyDown(true)
     }
@@ -131,6 +143,8 @@ export const MazeGame = ({ game, restartGame }: MazeGameProps) => {
   const gameRestartButtonFN = () => {
     restartGame()
     setGameStatus("")
+    endTimer()
+
     setStopKeyDown(false)
   }
 

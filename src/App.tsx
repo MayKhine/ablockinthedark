@@ -74,12 +74,13 @@ export const App = () => {
     <div {...stylex.props(styles.base)}>
       <div> A block in the dark</div>
       <div>{formattedTime}</div>
+      <div> is timer running: {isTimerRunning === false ? "NO" : "YES"}</div>
       <div
         onClick={() => {
           setIsTimerRunning(true)
         }}
       >
-        Timer start{" "}
+        Timer start
       </div>
       <div
         onClick={() => {
@@ -88,7 +89,12 @@ export const App = () => {
       >
         Timer End
       </div>
-      <MazeGame game={game} restartGame={restartGame} />
+      <MazeGame
+        game={game}
+        restartGame={restartGame}
+        startTimer={() => setIsTimerRunning(true)}
+        endTimer={() => setIsTimerRunning(false)}
+      />
     </div>
   )
 }
