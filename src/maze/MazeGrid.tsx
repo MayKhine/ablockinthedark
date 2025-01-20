@@ -13,9 +13,10 @@ type MazeGridProps = {
     randomDestination: GridCellType
   }
   restartGame: () => void
+  toggleTimer: () => void
 }
 
-export const MazeGrid = ({ game, restartGame }: MazeGridProps) => {
+export const MazeGrid = ({ game, restartGame, toggleTimer }: MazeGridProps) => {
   const randomDestination = game.randomDestination
   const gridSize = game.gridSize
   const randomStart = game.randomStart
@@ -40,11 +41,19 @@ export const MazeGrid = ({ game, restartGame }: MazeGridProps) => {
   const [gameStatus, setGameStatus] = useState("")
 
   const handleKeyDown = (event: KeyboardEvent) => {
+    if (gameStatus === "") {
+      console.log("Starting the game")
+      toggleTimer()
+      setGameStatus("on")
+    }
+
     if (event.key === "ArrowUp") {
       setMovingCell((prevVal) => {
         const newY = prevVal.y - 1
         if (newY < 0) {
           setGameStatus("over")
+          toggleTimer()
+
           setStopKeyDown(true)
           return prevVal
         } else {
@@ -58,6 +67,8 @@ export const MazeGrid = ({ game, restartGame }: MazeGridProps) => {
         const newY = prevVal.y + 1
         if (newY > gridSize - 1) {
           setGameStatus("over")
+          toggleTimer()
+
           setStopKeyDown(true)
 
           return prevVal
@@ -72,6 +83,8 @@ export const MazeGrid = ({ game, restartGame }: MazeGridProps) => {
         const newX = prevVal.x - 1
         if (newX < 0) {
           setGameStatus("over")
+          toggleTimer()
+
           setStopKeyDown(true)
 
           return prevVal
@@ -86,6 +99,8 @@ export const MazeGrid = ({ game, restartGame }: MazeGridProps) => {
         const newX = prevVal.x + 1
         if (newX > gridSize - 1) {
           setGameStatus("over")
+          toggleTimer()
+
           setStopKeyDown(true)
           return prevVal
         } else {
@@ -105,13 +120,14 @@ export const MazeGrid = ({ game, restartGame }: MazeGridProps) => {
       movingCell.y === randomDestination.y
     ) {
       setGameStatus("win")
+      toggleTimer()
       setStopKeyDown(true)
     }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
     }
-  }, [stopKeyDown, movingCell])
+  }, [stopKeyDown, movingCell, toggleTimer])
 
   useEffect(() => {
     setMovingCell(randomStart)
